@@ -4,8 +4,9 @@ from fake_useragent import UserAgent
 
 class PintrestScrapper:
 
-    def __init__(self, username: str) -> None:
+    def __init__(self, username: str, mode: str) -> None:
         self.username = username
+        self.mode = mode if mode else 'created'
         self.user_id = None
         self.basic_info = {}
         self.headers = {}
@@ -36,7 +37,7 @@ class PintrestScrapper:
             'User-Agent': UserAgent().random
         }
     
-    def make_url(self, bookmark: str | None, long: bool = False, mode: str | None = 'created') -> str:
+    def make_url(self, bookmark: str | None, long: bool = False) -> str:
         if long:
             url = """https://in.pinterest.com/resource/UserActivityPinsResource/get/?source_url=/navu__edition_/_created/&data={\"options\":{\"exclude_add_pin_rep\":true,\"field_set_key\":\"grid_item\",\"is_own_profile_pins\":false,\"redux_normalize_feed\":true,\"user_id\":\"1069182905193870202\",\"username\":\"navu__edition_\"},\"context\":{}}&_=1731394021059"""
         else:
@@ -50,7 +51,7 @@ class PintrestScrapper:
             params['data']['options']['bookmarks'] = [bookmark]
 
         # Modify the data in a way that exactly matches the original code
-        params['source_url'] = f'/{self.username}/{"_created" if not mode else mode if mode.startswith("_") else "_" + mode}/'
+        params['source_url'] = f'/{self.username}/{"_created" if not self.mode else self.mode if self.mode.startswith("_") else "_" + self.mode}/'
         params['_'] = str(int(time.time()))
         params['data']['options']['username'] = self.username
 
@@ -261,8 +262,8 @@ class PintrestScrapper:
         if not images:
             raise ValueError('Images Missing!')
 
-        download_dir = os.path.join(self.save_path, 'downloads')
-        download_dir_user = os.path.join(self.save_path, 'downloads', 'user')
+        download_dir = os.path.join(self.save_path, 'downloads') if not self.mode else os.path.join(self.save_path, 'downloads', self.mode)
+        download_dir_user = os.path.join(download_dir if not self.mode else os.path.join(self.save_path, 'downloads'), 'user')
         os.makedirs(download_dir, exist_ok=True)
         os.makedirs(download_dir_user, exist_ok=True)
 
@@ -325,17 +326,21 @@ def clear():
 
 def get_from_url(url: str):
     pattern = re.compile(r"""<meta[^>]*content="(?P<url>https?://(?:[a-zA-Z0-9-]+\.)?pinterest\.com/(?P<username>[^"]+)[^"]+)"[^>]*property=["\']og:url["\'][^>]*>""")
-    return pattern.search(requests.get(url).text).group('username')
+    return pattern.search(requests.get(url).text).group('username'), ''
 
 def url_check(string: str):
     
     if re.match(r'''https?://[\d\w+]pin\.it''', string):
         return get_from_url(string)
     
-    u = re.match(r"""https?://(?:[a-zA-Z0-9-]+\.)?pinterest\.com/(?P<username>[^"/]+)""", string)
+    u = re.match(r"""https?://(?:[a-zA-Z0-9-]+\.)?pinterest\.com/(?P<username>[^"/]+)/(?P<mode>[^"/]+)""", string)
     if u:
-        return u.group('username')
+        return u.group('username'), u.group('mode')
     
+    k = re.match(r"""https?://(?:[a-zA-Z0-9-]+\.)?pinterest\.com/(?P<username>[^"/]+)""", string)
+    if k:
+        return k.group('username'), ''
+
     raise ValueError(string + 'is not a valid url\nEnter username Manually!')
 
 if __name__ == "__main__":
@@ -347,9 +352,10 @@ if __name__ == "__main__":
             pattern = re.compile(r"""https?://\.pinterest\.com/([^/]+)/""", re.IGNORECASE)
 
             if username.startswith(('https://', 'http://')):
-                username = url_check(username)
+                username, mode = url_check(username)
 
-            s = PintrestScrapper(username)
+            s = PintrestScrapper(username, mode=mode)
+            print(f'Downloading \'{mode if mode else "created"}\' board from \'{username}\' user')
             s.download(s.get('full'))
 
             input("Press Enter to continue...")
