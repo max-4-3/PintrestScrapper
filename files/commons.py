@@ -29,4 +29,4 @@ BOARD_RESOURCE = f'{BASE}/resource/BoardFeedResource/get/'
 USER_PIN_RESOURCE = f'{BASE}/resource/UserActivityPinsResource/get/'
 USER_BOARDS_RESOURCE = f'{BASE}/resource/BoardsResource/get/'
 SESSION = create_session_with_retries()
-DOWNLOAD_PATH = os.path.join(os.path.split(__file__)[0], 'Pintrest Scrapper')
+DOWNLOAD_PATH = os.path.join(os.path.split(os.path.split(__file__)[0])[0], 'Pintrest Scrapper')

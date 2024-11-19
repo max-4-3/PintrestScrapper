@@ -1,5 +1,5 @@
 import time, json, re
-from commons import SESSION
+from files.commons import SESSION
 
 class DotDict(dict):
     def __getattr__(self, item):

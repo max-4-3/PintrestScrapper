@@ -1,7 +1,7 @@
-from http_methods import get_user, get_created_pins, get_all_boards
-from parser_methods import get_username, pretty_save_with_correct_data
-from util_methods import clear
-from commons import DOWNLOAD_PATH
+from files.http_methods import get_user, get_created_pins, get_all_boards
+from files.parser_methods import get_username, pretty_save_with_correct_data
+from files.util_methods import clear
+from files.commons import DOWNLOAD_PATH
 
 import os
 
