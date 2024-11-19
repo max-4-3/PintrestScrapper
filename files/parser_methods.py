@@ -1,5 +1,6 @@
 import time, json, re
-from files.commons import SESSION
+from sys import exit
+from .commons import SESSION
 
 class DotDict(dict):
     def __getattr__(self, item):
@@ -115,6 +116,10 @@ def return_resource(response: dict):
     return DotDict(response).resource_response
 
 def get_username(string: str):
+
+    if string == 'exit':
+        exit(0)
+
     if re.match(r"""https?://[\d\w+]?pin.it/""", string):
         webpage = SESSION.get(string).text
         match = re.search(r"""https?://(?:[a-zA-Z0-9-]+\.)?pinterest\.com/(?P<username>[^"/]+)/(?P<board_name>[^"/]+)?(/?invite_code=[\w\d]+)""", webpage)
@@ -123,3 +128,5 @@ def get_username(string: str):
     match = re.match(r"""https?://(?:[a-zA-Z0-9-]+\.)?pinterest\.com/(?P<username>[^"/]+)/(?P<board_name>[^"/]+)?(/?invite_code=[\w\d]+)?""", string)
     if match:
         return match.group('username'), match.groupdict().get('board_url', '')
+    
+    return '', ''

@@ -1,6 +1,6 @@
-from files.commons import SESSION, USER_BOARDS_RESOURCE, USER_PIN_RESOURCE, USER_RESOURCE, BOARD_RESOURCE
-from parser_methods import DotDict, return_resource
-from util_methods import clear
+from .commons import SESSION, USER_BOARDS_RESOURCE, USER_PIN_RESOURCE, USER_RESOURCE, BOARD_RESOURCE
+from .parser_methods import DotDict, return_resource
+from .util_methods import clear
 
 import json, time, random
 
