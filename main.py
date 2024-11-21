@@ -1,10 +1,16 @@
 from files.http_methods import get_user, get_created_pins, get_all_boards
 from files.parser_methods import get_username, pretty_save_with_correct_data
 from files.util_methods import clear
-from files.commons import DOWNLOAD_PATH
+from files.commons import DOWNLOAD_PATH, SESSION
+from files.download_methods import PinterestDownloader
 
-import os
+import os, json
 
+def download(filepath: str):
+    print(f'\tIt will take some time...'.expandtabs(4*3))
+    with open(filepath, 'r', errors='ignore', encoding='utf-8') as file:
+        data = json.load(file)
+    PinterestDownloader().download(data)
 
 def main():
 
@@ -52,8 +58,11 @@ def main():
             os.makedirs(download_dir, exist_ok=True)
 
             pretty_save_with_correct_data(massive_dict, os.path.join(download_dir, userinfo.username + '.json'))
-            print(f'\t----+ Info saved in: {os.path.join(os.path.abspath(os.getcwd()), userinfo.username+'.json')}'.expandtabs(4))
+            print(f'\t----+ Info saved in: {os.path.join(download_dir, userinfo.username+'.json')}'.expandtabs(4))
             
+            if input('\t--------> Do you want to download the scraped file?: '.expandtabs(4)).strip().lower() in ['yes', 'y']:
+                download(os.path.join(download_dir, userinfo.username + '.json'))
+
             if input('\t--------> Do you want to scrap another user?: '.expandtabs(4)).strip().lower() in ['yes', 'y']:
                 continue
             break

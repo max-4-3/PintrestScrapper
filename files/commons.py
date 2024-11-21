@@ -16,7 +16,7 @@ def create_session_with_retries(retries=3, backoff_factor=0.3, status_force_list
         status_forcelist=status_force_list,
         raise_on_status=False
     )
-    adapter = HTTPAdapter(max_retries=retry)
+    adapter = HTTPAdapter(max_retries=retry, pool_connections=50, pool_maxsize=50)
     session.mount('https://', adapter)
     session.mount('http://', adapter)
     session.headers.update({'User-Agent': UserAgent().firefox})
@@ -29,4 +29,4 @@ BOARD_RESOURCE = f'{BASE}/resource/BoardFeedResource/get/'
 USER_PIN_RESOURCE = f'{BASE}/resource/UserActivityPinsResource/get/'
 USER_BOARDS_RESOURCE = f'{BASE}/resource/BoardsResource/get/'
 SESSION = create_session_with_retries()
-DOWNLOAD_PATH = os.path.join(os.path.split(os.path.split(__file__)[0])[0], 'Pintrest Scrapper')
+DOWNLOAD_PATH = os.path.join(os.path.split(os.path.split(__file__)[0])[0], 'Pintrest Scrapper') 

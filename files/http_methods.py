@@ -131,7 +131,7 @@ def get_all_boards(userinfo: DotDict):
                                 'sort': 'default',
                                 'page_size': 25,
                                 'currentFilter': -1,
-                                'filter_stories': True,
+                                'filter_stories': False,
                                 'bookmarks': [bookmark]
                             },
                             'context': {}
