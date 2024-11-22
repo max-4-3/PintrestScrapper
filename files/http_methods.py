@@ -1,22 +1,21 @@
 from .commons import SESSION, USER_BOARDS_RESOURCE, USER_PIN_RESOURCE, USER_RESOURCE, BOARD_RESOURCE
 from .parser_methods import DotDict, return_resource
 from .util_methods import clear
+from urllib.parse import urlencode
 
 import json, time, random
 
 def get_user(user_name: str):
 
     print(f"----# Fetching user data for: {user_name}...")  # Add start message
-    data = SESSION.get(
-            USER_RESOURCE,
-            params={
-                'source_url': f'/{user_name}/',
-                'data': json.dumps({'options': {'username': user_name}, 'context': {}}),
-                '_': int(time.time())
-            }
-        ).json()
+    params={
+        'source_url': f'/{user_name}/',
+        'data': json.dumps({'options': {'username': user_name}, 'context': {}}),
+        '_': int(time.time())
+    }
+    data = return_resource(f'{USER_RESOURCE}?{urlencode(params, doseq=True)}')
     print(f"----# User data for {user_name} successfully fetched!")  # Success message
-    return return_resource(data).data
+    return data.data
 
 def get_created_pins(user_info: DotDict):
     print(f"----# Scraping created pins for user: {user_info.username}...")
@@ -26,25 +25,28 @@ def get_created_pins(user_info: DotDict):
 
     while True:
         try:
+            params={
+                'source_url': f'/{user_info.username}/_created',
+                'data': json.dumps({
+                    'options': {
+                        'exclude_add_pin_rep': True,
+                        'field_set_key': 'grid_item',
+                        'user_id': str(user_info.id) if not isinstance(user_info.id, str) else user_info.id,
+                        'username': user_info.username,
+                        'bookmarks': [bookmark]
+                    },
+                    'context': {}
+                }),
+                '_': int(time.time())
+            }
+
             data = return_resource(
-                SESSION.get(
-                    USER_PIN_RESOURCE,
-                    params={
-                        'source_url': f'/{user_info.username}/_created',
-                        'data': json.dumps({
-                            'options': {
-                                'exclude_add_pin_rep': True,
-                                'field_set_key': 'grid_item',
-                                'user_id': str(user_info.id) if not isinstance(user_info.id, str) else user_info.id,
-                                'username': user_info.username,
-                                'bookmarks': [bookmark]
-                            },
-                            'context': {}
-                        }),
-                        '_': int(time.time())
-                    }
-                ).json()
+                f"{USER_PIN_RESOURCE}?{urlencode(params, doseq=True)}"
             )
+
+            if not data:
+                print("\nRecieved Null Data, Continuing...") 
+                continue
 
             pins.extend(data.data)
             scraped += len(data.data)
@@ -74,24 +76,28 @@ def get_all_boards(userinfo: DotDict):
         boards = []
         while True:
             try:
+                params={
+                    'source_url': f'/{userinfo.username}/',
+                    'data': json.dumps({
+                        "options": {
+                        "field_set_key": "profile_grid_item",
+                        "filter_stories": False,
+                        "sort": "last_pinned_to",
+                        "username": userinfo.username
+                        },
+                        'context': {}
+                    }),
+                    '_': int(time.time())
+                }
+
                 resource = return_resource(
-                    SESSION.get(
-                        USER_BOARDS_RESOURCE,
-                        params={
-                            'source_url': f'/{userinfo.username}/',
-                            'data': json.dumps({
-                                "options": {
-                                "field_set_key": "profile_grid_item",
-                                "filter_stories": False,
-                                "sort": "last_pinned_to",
-                                "username": userinfo.username
-                                },
-                                'context': {}
-                            }),
-                            '_': int(time.time())
-                        }
-                    ).json()
+                    f'{USER_BOARDS_RESOURCE}?{urlencode(params, doseq=True)}'
                 )
+                
+                if not resource:
+                    print("\nRecieved Null Data, Continuing...") 
+                    continue
+
                 for board in resource.data:
                     if board.type != 'board':
                         continue
@@ -120,25 +126,31 @@ def get_all_boards(userinfo: DotDict):
         pins = []
         while True:
             try:
-                resource = return_resource(SESSION.get(
-                    BOARD_RESOURCE,
-                    params={
-                        'source_url': board.url,
-                        'data': json.dumps({
-                            'options': {
-                                'board_id': str(board.id),
-                                'board_url': board.url,
-                                'sort': 'default',
-                                'page_size': 25,
-                                'currentFilter': -1,
-                                'filter_stories': False,
-                                'bookmarks': [bookmark]
-                            },
-                            'context': {}
-                        }),
-                        '_': int(time.time())
-                    }
-                ).json())
+
+                params={
+                    'source_url': board.url,
+                    'data': json.dumps({
+                        'options': {
+                            'board_id': str(board.id),
+                            'board_url': board.url,
+                            'sort': 'default',
+                            'page_size': 25,
+                            'currentFilter': -1,
+                            'filter_stories': False,
+                            'bookmarks': [bookmark]
+                        },
+                        'context': {}
+                    }),
+                    '_': int(time.time())
+                }
+
+                resource = return_resource(
+                    f"{BOARD_RESOURCE}?{urlencode(params, doseq=True)}"
+                )
+
+                if not resource:
+                    print("\t|--------> Recieved Null Data!".expandtabs(4)) 
+                    break
 
                 pins.extend(resource.data)
                 scraped += len(resource.data)

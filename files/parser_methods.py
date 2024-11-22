@@ -173,8 +173,16 @@ def pretty_save_with_correct_data(big_data: dict, name: str):
         log_and_continue(e, "Failed to save data to file")
         return False
 
-def return_resource(response: dict):
-    return DotDict(response).resource_response
+def return_resource(url: str):
+    
+    response = SESSION.get(url)
+
+    try:
+        response.raise_for_status()
+        return DotDict(response.json()).resource_response
+    except Exception as e:
+        logging.error(f'Unable to convert to json: {e} [{e.__class__.__name__}]\nRaw data: {response.text}')
+        return DotDict()
 
 def get_username(string: str):
 
