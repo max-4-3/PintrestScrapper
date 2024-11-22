@@ -1,7 +1,7 @@
 import logging.config
 import time, json, re, os, logging
 from sys import exit
-from .commons import SESSION, DOWNLOAD_PATH
+from .commons import SESSION, LOG_PATH
 
 class DotDict(dict):
     """
@@ -47,9 +47,12 @@ class DotDict(dict):
 
 def pretty_save_with_correct_data(big_data: dict, name: str):
     # Initialize logging
-    log_file = os.path.join(DOWNLOAD_PATH, 'scraping.log')
-    logging.basicConfig(filename=log_file, level=logging.DEBUG, 
-                        format='%(asctime)s - %(levelname)s - %(message)s')
+    log_file = os.path.join(LOG_PATH, big_data.get('username'), big_data.get('username') + '_scraping.log')
+    logging.basicConfig(
+        filename=log_file,
+        level=logging.DEBUG, 
+        format='%(asctime)s - %(levelname)s: %(message)s'
+    )
     
     big_data = DotDict(big_data, mode='saving')
     user_info = None
@@ -173,9 +176,12 @@ def pretty_save_with_correct_data(big_data: dict, name: str):
         log_and_continue(e, "Failed to save data to file")
         return False
 
-def return_resource(url: str):
+def return_resource(url: str, headers: dict | None = None):
     
-    response = SESSION.get(url)
+    if headers:
+        response = SESSION.get(url, headers=headers)
+    else:
+        response = SESSION.get(url)
 
     try:
         response.raise_for_status()

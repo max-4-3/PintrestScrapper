@@ -122,10 +122,19 @@ def get_all_boards(userinfo: DotDict):
         bookmark = None
         scraped, count = 0, 1
 
+        new_headers = {key: value for key, value in SESSION.headers.items()}
+        new_headers.update(
+            {
+                "X-Pinterest-PWS-Handler": "www/[username]/[slug].js",
+            }
+        )
+
         orig_board = {key: value for key, value in board.items()}
         pins = []
         while True:
             try:
+
+                new_headers['X-Pinterest-Source-Url'] = board.url
 
                 params={
                     'source_url': board.url,
@@ -145,7 +154,8 @@ def get_all_boards(userinfo: DotDict):
                 }
 
                 resource = return_resource(
-                    f"{BOARD_RESOURCE}?{urlencode(params, doseq=True)}"
+                    f"{BOARD_RESOURCE}?{urlencode(params, doseq=True)}",
+                    new_headers
                 )
 
                 if not resource:

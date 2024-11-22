@@ -5,7 +5,7 @@ import subprocess as sp
 from .parser_methods import DotDict
 from .util_methods import clear
 from concurrent.futures import ThreadPoolExecutor, as_completed, wait
-from .commons import DOWNLOAD_PATH, SESSION
+from .commons import DOWNLOAD_PATH, SESSION, LOG_PATH
 import time
 import re
 
@@ -27,14 +27,12 @@ class PinterestDownloader:
             logging.error(f'Error Downlaoding a anoynomus file from \"{url}\" [name: {filename}]: {e.args} [{e.__class__.__name__}]')
             return 0
     
-    def set_logger(self):
-        path = self.root_path if self.root_path else os.path.abspath(os.getcwd())
+    def set_logger(self, username: str):
         logging.basicConfig(
-            filename=os.path.join(path, "download.log"),
+            filename=os.path.join(LOG_PATH, username, username + "_downloads.log"),
             level=logging.INFO,
             format="%(asctime)s [%(levelname)s] %(filename)s:%(lineno)d %(funcName)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-            filemode='w'
+            datefmt="%Y-%m-%d %H:%M:%S"
         )        
 
     @staticmethod
@@ -137,7 +135,7 @@ class PinterestDownloader:
         if not os.path.exists(download_path):
             os.makedirs(download_path)        
 
-        print(f'\t|---> Downloading {self.__get_title_or_id__(pin)}...'.expandtabs(4), end='\r')
+        print(f'\t|---> Downloading {self.__get_title_or_id__(pin)}...'.expandtabs(4), end='\n')
 
         if (not pin.videos) and (not pin.images):
             logging.error(f'{pin.title or pin.id} does not have any downloadable resource!')
@@ -280,6 +278,7 @@ class PinterestDownloader:
 
         self.session = SESSION
         self.root_path = os.path.join(DOWNLOAD_PATH, data.username, 'downloads')
+        self.set_logger(data.username)
 
         os.makedirs(self.root_path, exist_ok=True)
 

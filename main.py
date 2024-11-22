@@ -1,7 +1,7 @@
 from files.http_methods import get_user, get_created_pins, get_all_boards
 from files.parser_methods import get_username, pretty_save_with_correct_data
 from files.util_methods import clear
-from files.commons import DOWNLOAD_PATH, SESSION
+from files.commons import DOWNLOAD_PATH, LOG_PATH
 from files.download_methods import PinterestDownloader
 
 import os, json
@@ -11,6 +11,10 @@ def download(filepath: str):
     with open(filepath, 'r', errors='ignore', encoding='utf-8') as file:
         data = json.load(file)
     PinterestDownloader().download(data)
+
+def make_logging_path(username: str):
+    path = os.path.join(LOG_PATH, username)
+    os.makedirs(path, exist_ok=True)
 
 def main():
 
@@ -27,6 +31,8 @@ def main():
             username, boardname = get_username(userinput)
             if not username:
                 continue
+
+            make_logging_path(username)
 
             userinfo = get_user(username)
             created_pins, boards = [], []
