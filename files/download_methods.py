@@ -261,13 +261,13 @@ class PinterestDownloader:
 
         return filename
 
-    def __get_unique_name__(self, target_dir: str, filename: str):
-        name = self.__sanitize_filename__(filename) if self.is_windows else name
+    def __get_unique_name__(self, target_dir: str, filename: str, filetype: str = '.png'):
+        name = self.__sanitize_filename__(filename) if self.is_windows else filename
         base_name, ext = os.path.splitext(name)
         counter = 1
 
         # Check for existing files and generate a unique name if needed
-        while os.path.exists(os.path.join(target_dir, name + '.png')):
+        while os.path.exists(os.path.join(target_dir, name + filetype)):
             name = f"{base_name}_{counter}"
             counter += 1
 
